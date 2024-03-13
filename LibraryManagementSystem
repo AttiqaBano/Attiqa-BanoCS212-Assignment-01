@@ -1,0 +1,216 @@
+import java.io.*;
+import java.util.*;
+
+class Book implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private int id;
+    private String title;
+    private String author;
+    private String genre;
+    private boolean available;
+
+    public Book(int id, String title, String author, String genre, boolean available) {
+        this.id = id;
+        this.title = title;
+        this.author = author;
+        this.genre = genre;
+        this.available = available;
+    }
+
+    // Getters and setters...
+}
+
+class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private int id;
+    private String name;
+    private String contactInfo;
+    private List<Integer> borrowedBookIds;
+
+    public User(int id, String name, String contactInfo) {
+        this.id = id;
+        this.name = name;
+        this.contactInfo = contactInfo;
+        this.borrowedBookIds = new ArrayList<>();
+    }
+
+    // Getters and setters...
+}
+
+class Library implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private Map<Integer, Book> books;
+    private Map<Integer, User> users;
+
+    public Library() {
+        this.books = new HashMap<>();
+        this.users = new HashMap<>();
+    }
+
+    public void addBook(Book book) {
+        books.put(book.getId(), book);
+    }
+
+    public void addUser(User user) {
+        users.put(user.getId(), user);
+    }
+
+    public void displayBooks() {
+        for (Book book : books.values()) {
+            System.out.println(book.getTitle() + " by " + book.getAuthor());
+        }
+    }
+
+    public Book findBookById(int id) {
+        return books.get(id);
+    }
+
+    public User findUserById(int id) {
+        return users.get(id);
+    }
+
+    public void borrowBook(int userId, int bookId) {
+        User user = users.get(userId);
+        Book book = books.get(bookId);
+        if (user != null && book != null && book.isAvailable()) {
+            user.getBorrowedBookIds().add(bookId);
+            book.setAvailable(false);
+            System.out.println("Book borrowed successfully.");
+        } else {
+            System.out.println("Unable to borrow the book.");
+        }
+    }
+
+    public void returnBook(int userId, int bookId) {
+        User user = users.get(userId);
+        Book book = books.get(bookId);
+        if (user != null && book != null && !book.isAvailable()) {
+            user.getBorrowedBookIds().remove(Integer.valueOf(bookId));
+            book.setAvailable(true);
+            System.out.println("Book returned successfully.");
+        } else {
+            System.out.println("Unable to return the book.");
+        }
+    }
+}
+
+public class LibraryManagementSystem {
+    private static final String DATA_FILE = "library_data.ser";
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        Library library = loadLibrary();
+        if (library == null) {
+            library = new Library();
+        }
+
+        boolean exit = false;
+        while (!exit) {
+            printMenu();
+            int choice = readIntegerInput("Enter your choice: ");
+            switch (choice) {
+                case 1:
+                    addBook(library);
+                    break;
+                case 2:
+                    addUser(library);
+                    break;
+                case 3:
+                    library.displayBooks();
+                    break;
+                case 4:
+                    borrowBook(library);
+                    break;
+                case 5:
+                    returnBook(library);
+                    break;
+                case 6:
+                    searchBookByTitle(library);
+                    break;
+                case 7:
+                    searchBookByAuthor(library);
+                    break;
+                case 8:
+                    searchUserById(library);
+                    break;
+                case 9:
+                    saveLibrary(library);
+                    exit = true;
+                    break;
+                default:
+                    System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    private static void printMenu() {
+        System.out.println("Library Management System");
+        System.out.println("1. Add Book");
+        System.out.println("2. Add User");
+        System.out.println("3. Display Books");
+        System.out.println("4. Borrow Book");
+        System.out.println("5. Return Book");
+        System.out.println("6. Search Book by Title");
+        System.out.println("7. Search Book by Author");
+        System.out.println("8. Search User by ID");
+        System.out.println("9. Exit");
+    }
+
+    private static int readIntegerInput(String message) {
+        System.out.print(message);
+        while (!scanner.hasNextInt()) {
+            System.out.print("Invalid input. Please enter an integer: ");
+            scanner.next();
+        }
+        return scanner.nextInt();
+    }
+
+    private static String readStringInput(String message) {
+        System.out.print(message);
+        return scanner.next();
+    }
+
+    private static void addBook(Library library) {
+        int id = readIntegerInput("Enter book ID: ");
+        scanner.nextLine(); // Consume newline
+        System.out.print("Enter title: ");
+        String title = scanner.nextLine();
+        System.out.print("Enter author: ");
+        String author = scanner.nextLine();
+        System.out.print("Enter genre: ");
+        String genre = scanner.nextLine();
+
+        Book book = new Book(id, title, author, genre, true);
+        library.addBook(book);
+        System.out.println("Book added successfully!");
+    }
+
+    private static void addUser(Library library) {
+        int id = readIntegerInput("Enter user ID: ");
+        scanner.nextLine(); // Consume newline
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter contact information: ");
+        String contactInfo = scanner.nextLine();
+
+        User user = new User(id, name, contactInfo);
+        library.addUser(user);
+        System.out.println("User added successfully!");
+    }
+
+    private static void borrowBook(Library library) {
+        int userId = readIntegerInput("Enter user ID: ");
+        int bookId = readIntegerInput("Enter book ID: ");
+        library.borrowBook(userId, bookId);
+    }
+
+    private static void returnBook(Library library) {
+        int userId = readIntegerInput("Enter user ID: ");
+        int bookId = readIntegerInput("Enter book ID: ");
+        library.returnBook(userId, bookId);
+    }
+
+    // Implement searchBookByTitle, searchBookByAuthor, and searchUserById methods similarly
+
+    // Implement loadLibrary and saveLibrary methods similarly
+}
